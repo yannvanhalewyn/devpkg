@@ -1,7 +1,7 @@
 # Compiler
 CC=cc
 CFLAGS=-Wall -g -I/usr/include/apr-1 -Ibstrlib-master/
-LDFLAGS=-lapr-1
+LDFLAGS=-lapr-1 -laprutil-1
 
 # DIRS
 SRCDIR=src
@@ -12,7 +12,7 @@ BINDIR=bin
 SOURCES := $(shell find $(SRCDIR)/*.c)
 HEADERS := $(shell find $(SRCDIR)/*.h)
 OBJECTS := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
-BUILD=main
+BUILD=devpkg
 
 SRC:=$(SRCDIR)/$(SRC)
 BUILD:=$(BINDIR)/$(BUILD)

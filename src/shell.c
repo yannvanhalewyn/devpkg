@@ -96,6 +96,12 @@ Shell CLEANUP_SH = {
         "/tmp/pkg-src/.tar.bz2", "/tmp/DEPENDS", NULL}
 };
 
+Shell GIT_SH = {
+    .dir = "/tmp",
+    .exe = "git",
+    .args = {"git", "clone", "URL", "pkg-build", NULL}
+};
+
 Shell TAR_SH = {
     .dir = "/tmp",
     .exe = "tar",
