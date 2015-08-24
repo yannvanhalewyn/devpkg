@@ -19,6 +19,7 @@ typedef struct Shell {
 
 int Shell_run(apr_pool_t *p, Shell *cmd);
 int Shell_exec(Shell cmd, ...);
+void Shell_print(Shell *cmd);
 
 extern Shell CLEANUP_SH;
 extern Shell GIT_SH;
