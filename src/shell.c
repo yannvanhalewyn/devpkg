@@ -47,6 +47,9 @@ int Shell_run(apr_pool_t *p, Shell *cmd) {
     apr_status_t rv;
     apr_proc_t newproc;
 
+    // Print out the command that's about to be ran
+    Shell_print(cmd);
+
     // Create a process using the threadpool
     rv = apr_procattr_create(&attr, p);
     check(rv == APR_SUCCESS, "Failed to create proc attr");
@@ -75,8 +78,6 @@ int Shell_run(apr_pool_t *p, Shell *cmd) {
     // Check everything ran correctly
     check(cmd->exit_code == 0, "%s exited badly", cmd->exe);
     check(cmd->exit_why == APR_PROC_EXIT, "%s killed or crashed", cmd->exe);
-
-    Shell_print(cmd);
 
     return 0;
 }

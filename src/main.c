@@ -33,7 +33,7 @@ int main(int argc, const char *argv[])
     // Gets every option passed in, and stores the flag in ch, and the
     // value in optarg. Ex:
     // -I foo -L bar => ch = 'I', optarg = "foo", ch = 'L' optarg = "bar"
-    while(apr_getopt(opt, "I:Lc:m:i:d:SF:B:", &ch, &optarg) == APR_SUCCESS) {
+    while(apr_getopt(opt, "I:Lc:m:i:SF:B:", &ch, &optarg) == APR_SUCCESS) {
         switch(ch) {
             case 'I':
                 request = COMMAND_INSTALL;
