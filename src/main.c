@@ -1,47 +1,108 @@
-/* #include "db.h" */
-/* #include "bstrlib.h" */
-#include "stdarg.h"
 #include <stdio.h>
+#include <apr_general.h>
+#include <apr_getopt.h>
+#include <apr_strings.h>
+#include <apr_lib.h>
+
 #include "dbg.h"
-#include <apr_thread_proc.h>
+#include "db.h"
+#include "commands.h"
+#include "bstrlib.h"
 
-void doSth(char f, ...) {
-}
-
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
+    // Setup Apache Portable Runtime pool
     apr_pool_t *p = NULL;
-    apr_pool_initialize();
+    apr_initialize();
     apr_pool_create(&p, NULL);
-    check(p, "Error in p");
 
-    apr_procattr_t *attr;
-    apr_status_t rv = -1;
-    apr_proc_t newproc;
+    apr_getopt_t *opt;
+    apr_status_t rv;
 
-    rv = apr_procattr_create(&attr, p);
-    check(rv == APR_SUCCESS, "Failed to create proc attr");
+    char ch = '\0';
+    const char *optarg = NULL;
+    const char *config_opts = NULL;
+    const char *install_opts = NULL;
+    const char *make_opts = NULL;
+    const char *url = NULL;
+    enum CommandType request = COMMAND_NONE;
 
-    rv = apr_procattr_io_set(attr, APR_NO_PIPE, APR_NO_PIPE, APR_NO_PIPE);
-    check(rv == APR_SUCCESS, "Failed to set IO of command.");
+    // Setup getOpt process
+    rv = apr_getopt_init(&opt, p, argc, argv);
 
-    /* rv = apr_procattr_dir_set(attr, "theDir"); */
-    /* check(rv == APR_SUCCESS, "Failed to set root to %s.", "theDir"); */
+    // Gets every option passed in, and stores the flag in ch, and the
+    // value in optarg. Ex:
+    // -I foo -L bar => ch = 'I', optarg = "foo", ch = 'L' optarg = "bar"
+    while(apr_getopt(opt, "I:Lc:m:i:d:SF:B:", &ch, &optarg) == APR_SUCCESS) {
+        switch(ch) {
+            case 'I':
+                request = COMMAND_INSTALL;
+                url = optarg;
+                break;
 
-    rv = apr_procattr_cmdtype_set(attr, APR_PROGRAM_PATH);
-    check(rv == APR_SUCCESS, "Failed to set command type");
+            case 'L':
+                request = COMMAND_LIST;
+                break;
 
-    const char *args[4] = {"touch", "foobarfile", "file3", NULL};
-    rv = apr_proc_create(&newproc, "touch", args, NULL, attr, p);
-    check(rv == APR_SUCCESS, "Failed to create sub process");
+            case 'c':
+                config_opts = optarg;
+                break;
 
-    int exit_code;
-    apr_exit_why_e exit_why;
-    rv = apr_proc_wait(&newproc, &exit_code, &exit_why, APR_WAIT);
-    check(rv == APR_CHILD_DONE, "Failed to wait");
+            case 'm':
+                make_opts = optarg;
+                break;
 
-    check(exit_code == 0, "%d exited badly", exit_code);
-    check(exit_why == APR_PROC_EXIT, "%s killed or crashed", "touch");
+            case 'i':
+                install_opts = optarg;
+                break;
 
+            case 'S':
+                request = COMMAND_INIT;
+                break;
+
+            case 'F':
+                request = COMMAND_FETCH;
+                url = optarg;
+                break;
+
+            case 'B':
+                request = COMMAND_BUILD;
+                url = optarg;
+                break;
+        }
+    }
+
+    switch(request) {
+        case COMMAND_INSTALL:
+            check(url, "You must at least give a URL.");
+            Command_install(p, url, config_opts, make_opts, install_opts);
+            break;
+
+        case COMMAND_LIST:
+            DB_list();
+            break;
+
+        case COMMAND_FETCH:
+            check(url != NULL, "You must give a URL.");
+            Command_fetch(p, url, 1);
+            log_info("Downloaded to %s and in /tmp/", BUILD_DIR);
+            break;
+
+        case COMMAND_BUILD:
+            check(url, "You must at least give a URL.");
+            Command_build(p, url, config_opts, make_opts, install_opts);
+            break;
+
+        case COMMAND_INIT:
+            rv = DB_init();
+            check(rv == 0, "Failed to make the database.");
+            break;
+
+        default:
+            sentinel("Invalid command given.");
+    }
+
+    apr_pool_destroy(p);
+    apr_terminate();
     return 0;
 }
