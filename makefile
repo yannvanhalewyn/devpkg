@@ -17,19 +17,13 @@ BUILD=devpkg
 SRC:=$(SRCDIR)/$(SRC)
 BUILD:=$(BINDIR)/$(BUILD)
 
-BSTRSRC=bstrlib-master/bstrlib.c
-BSTROBJ=$(OBJDIR)/bstrlib.o
-
-$(BUILD): $(OBJECTS) $(BSTROBJ)
+$(BUILD): $(OBJECTS)
 	@[ -d $(BINDIR) ] || (mkdir $(BINDIR) && echo "\n--- made $(BINDIR) dir\n")
 	$(CC) $(LDFLAGS) $^ -o $@
 
 $(OBJECTS): $(OBJDIR)/%.o: $(SRCDIR)/%.c $(HEADERS)
 	@[ -d $(OBJDIR) ] || (mkdir $(OBJDIR) && echo "\n--- made $(OBJDIR) dir\n")
 	$(CC) $(CFLAGS) -c $< -o $@
-
-$(BSTROBJ): $(BSTRSRC)
-	cc -c $< -o $@
 
 # =====
 # PHONY
